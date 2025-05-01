@@ -46,7 +46,7 @@ def interface():
             run_agent(col2,"Agent Actualité", "\n".join(prompt_lines[:2]), API_STOCK_ANALYSIS_2, "output2", "update2")
 
     if file_content:
-            combined_prompt = f"Stock Options: {st.session_state.output1}"
+            combined_prompt = f"WebScrapper Result: {st.session_state.output2}"
             run_agent(col3,"Agent Analyste", combined_prompt, API_PDF_ANALYSIS, "output3", "update3", uploads=file_content)
 
     
