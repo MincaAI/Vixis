@@ -1,6 +1,7 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 from datetime import datetime
+import pytz
 from models.Report import Report
 from sharepoint import SharePointClient
 
@@ -13,19 +14,19 @@ def navbar():
         selected = option_menu(
             menu_title="Vixis - Note d’analyse",
             options=["Note d’analyse sectorielle", "Note d’analyse mono sous-jacent"],
-            menu_icon="menu-up",
             default_index=["Note d’analyse sectorielle", "Note d’analyse mono sous-jacent"].index(st.session_state.selected_page),
             key="navigation",
             styles={
                 "container": {
                     "background-color": "#F8F9FA",
-                    "padding": "10px",
-                    "border-radius": "8px",
+                    "padding": "8px",
+                    "border-radius": "6px",
                 },
-                "icon": {"color": "#4B0082", "font-size": "22px"},
+                # Ensure icon style is commented out
+                # "icon": {"color": "#4B0082", "font-size": "22px"},
                 "nav-link": {
                     "font-size": "16px",
-                    "text-align": "center",
+                    "text-align": "left",
                     "margin": "5px",
                     "padding": "12px",
                     "color": "#333333",
@@ -119,22 +120,36 @@ def navbar():
             """,
             unsafe_allow_html=True,
         )
-        user_email = "Email: "+ st.experimental_user.preferred_username  # Fetch dynamically if using authentication
-        st.markdown(f'<p class="profile-email">{user_email}</p>', unsafe_allow_html=True)
+        # Add current Paris date
+        paris_tz = pytz.timezone('Europe/Paris')
+        current_paris_time = datetime.now(paris_tz).strftime("%d/%m/%Y")
+        st.markdown(f'<p style="font-size: 14px; color: #333; font-weight: bold; margin-top: 4px; margin-bottom: 2px; font-family: Arial, sans-serif;">Date: {current_paris_time}</p>', unsafe_allow_html=True)
         
-        col1, col2 = st.columns([2,1])
+        # Add email
+        user_email = "Email: "+ st.experimental_user.preferred_username
+        st.markdown(f'<p style="font-size: 14px; color: #333; font-weight: bold; margin-top: 2px; font-family: Arial, sans-serif;">{user_email}</p>', unsafe_allow_html=True)
+        
+        # Add divider
+        st.markdown("<hr style='border: 0.5px solid #ccc;'>", unsafe_allow_html=True)
+        
+        # Add Sharepoint link and Update Data button side by side
+        col1, col2 = st.columns([1,1])
         with col1:
+            sharepoint_url = "https://vixis.sharepoint.com/:x:/s/Intranet/EUFYEJiKVDhPoW9ARN0jcLQBc6hugWQiIVi3rhu8OD2f9Q?e=UKxo3D"
+            st.markdown(f'<p class="profile-email"><a href="{sharepoint_url}" target="_blank" style="color: #0066cc; text-decoration: underline;">Sharepoint data</a></p>', unsafe_allow_html=True)
+        with col2:
             if st.button("Update Data", key="update_data", help="Click to refresh data"):
                 with st.spinner("Updating data... ⏳"):
                     sp = SharePointClient()
                     sp.load_data()
-                    # st.success("✅ Data updated successfully!")
-        with col2:
-            
-        # Logout Button
+        
+        # Add more vertical space before logout button
+        st.markdown("<br><br><br><br><br><br>", unsafe_allow_html=True)
+        
+        # Logout Button aligned with Update Data
+        col1, col2 = st.columns([2,1])
+        with col1:
             if st.button("🚪 Logout", key="logout"):
                 st.logout()
-                # st.session_state.clear()
-                # st.experimental_rerun()
 
         st.markdown('</div>', unsafe_allow_html=True)
