@@ -124,15 +124,6 @@ def navbar():
         guide_url = "https://docs.google.com/document/d/1sk0GYlztWo-fny5LVjb3QsHz-IvRYDgj5wDL0obNZQU/edit?tab=t.0"
         st.markdown(f'<p style="font-size: 16px; color: #333; font-weight: bold; margin-top: 4px; font-family: Arial, sans-serif;">Guide d\'utilisation: <a href="{guide_url}" target="_blank" style="color: #0066cc; text-decoration: underline;">Lire le guide</a></p>', unsafe_allow_html=True)
         
-        # Add current Paris date
-        paris_tz = pytz.timezone('Europe/Paris')
-        current_paris_time = datetime.now(paris_tz).strftime("%d/%m/%Y")
-        st.markdown(f'<p style="font-size: 14px; color: #333; margin-top: 4px; margin-bottom: 2px; font-family: Arial, sans-serif;">Date: {current_paris_time}</p>', unsafe_allow_html=True)
-        
-        # Add email
-        user_email = "Email: "+ st.experimental_user.preferred_username
-        st.markdown(f'<p style="font-size: 14px; color: #333; margin-top: 2px; font-family: Arial, sans-serif;">{user_email}</p>', unsafe_allow_html=True)
-        
         # Add divider
         st.markdown("<hr style='border: 0.5px solid #ccc;'>", unsafe_allow_html=True)
         
@@ -146,6 +137,21 @@ def navbar():
                 with st.spinner("Updating data... ⏳"):
                     sp = SharePointClient()
                     sp.load_data()
+        
+        # Add divider
+        st.markdown("<hr style='border: 0.5px solid #ccc;'>", unsafe_allow_html=True)
+        
+        # Add current Paris date
+        paris_tz = pytz.timezone('Europe/Paris')
+        current_paris_time = datetime.now(paris_tz).strftime("%d/%m/%Y")
+        st.markdown(f'<p style="font-size: 14px; color: #333; margin-top: 4px; margin-bottom: 2px; font-family: Arial, sans-serif;">Date: {current_paris_time}</p>', unsafe_allow_html=True)
+        
+        # Add email
+        user_email = "Email: "+ st.experimental_user.preferred_username
+        st.markdown(f'<p style="font-size: 14px; color: #333; margin-top: 2px; font-family: Arial, sans-serif;">{user_email}</p>', unsafe_allow_html=True)
+        
+        # Add more vertical space before logout button
+        st.markdown("<br><br><br><br><br><br>", unsafe_allow_html=True)
         
         # Logout Button aligned with Update Data
         col1, col2 = st.columns([2,1])
