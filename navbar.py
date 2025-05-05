@@ -122,7 +122,7 @@ def navbar():
         )
         # Add user guide link
         guide_url = "https://docs.google.com/document/d/1sk0GYlztWo-fny5LVjb3QsHz-IvRYDgj5wDL0obNZQU/edit?tab=t.0"
-        st.markdown(f'<p style="font-size: 16px; color: #333; font-weight: bold; margin-top: 4px; font-family: Arial, sans-serif;">Guide d\'utilisation: <a href="{guide_url}" target="_blank" style="color: #0066cc; text-decoration: underline;">Lire le guide</a></p>', unsafe_allow_html=True)
+        st.markdown(f'<p style="font-size: 16px; color: #333; font-weight: bold; margin-top: 2px; font-family: Arial, sans-serif;">Guide d\'utilisation: <a href="{guide_url}" target="_blank" style="color: #0066cc; text-decoration: underline;">Lire le guide</a></p>', unsafe_allow_html=True)
         
         # Add divider
         st.markdown("<hr style='border: 0.5px solid #ccc;'>", unsafe_allow_html=True)
@@ -151,7 +151,7 @@ def navbar():
         st.markdown(f'<p style="font-size: 14px; color: #333; margin-top: 2px; font-family: Arial, sans-serif;">{user_email}</p>', unsafe_allow_html=True)
         
         # Add more vertical space before logout button
-        st.markdown("<br><br><br><br><br><br>", unsafe_allow_html=True)
+        st.markdown("<br><br><br><br>", unsafe_allow_html=True)
         
         # Logout Button aligned with Update Data
         col1, col2 = st.columns([2,1])
