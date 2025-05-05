@@ -120,6 +120,10 @@ def navbar():
             """,
             unsafe_allow_html=True,
         )
+        # Add user guide link
+        guide_url = "https://docs.google.com/document/d/1sk0GYlztWo-fny5LVjb3QsHz-IvRYDgj5wDL0obNZQU/edit?tab=t.0"
+        st.markdown(f'<p style="font-size: 14px; color: #333; font-weight: bold; margin-top: 4px; font-family: Arial, sans-serif;">Guide d\'utilisation: <a href="{guide_url}" target="_blank" style="color: #0066cc; text-decoration: underline;">Lire le guide</a></p>', unsafe_allow_html=True)
+        
         # Add current Paris date
         paris_tz = pytz.timezone('Europe/Paris')
         current_paris_time = datetime.now(paris_tz).strftime("%d/%m/%Y")
