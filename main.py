@@ -9,7 +9,7 @@ from interface1 import interface1
 
 if __name__ == "__main__":
 
-    if not st.user.is_logged_in:
+    if not st.experimental_user.is_logged_in:
         if st.button("Log in with SharePoint"):
             st.login()
         st.stop()
