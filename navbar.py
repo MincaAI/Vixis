@@ -147,7 +147,7 @@ def navbar():
         st.markdown(f'<p style="font-size: 14px; color: #333; margin-top: 4px; margin-bottom: 2px; font-family: Arial, sans-serif;">Date: {current_paris_time}</p>', unsafe_allow_html=True)
         
         # Add email
-        user_email = "Email: "+ st.experimental_user.preferred_username
+        user_email = "Email: "+ st.user.preferred_username
         st.markdown(f'<p style="font-size: 14px; color: #333; margin-top: 2px; font-family: Arial, sans-serif;">{user_email}</p>', unsafe_allow_html=True)
         
         # Add more vertical space before logout button
