@@ -6,12 +6,12 @@ from runAgent import run_agent
 import json
 
 # API URLs
-API_ATTACHMENT = "https://mincaai-1.app.flowiseai.com/api/v1/attachments/7d7fcbbd-d20f-4f06-a2cc-daefb9accd8c/2f2131c7-bd60-4102-9a1e-4ea9e5e2a9ef"
-API_STOCK_ANALYSIS_1 = "https://mincaai-1.app.flowiseai.com/api/v1/prediction/a3b63d2d-3f5f-4e40-97f7-e2d0f9f4c8e9"
-API_STOCK_ANALYSIS_2 = "https://mincaai-1.app.flowiseai.com/api/v1/prediction/5a92d92a-a6ea-4d88-bbe6-2c16f3d50e9f"
-API_PDF_ANALYSIS = "https://mincaai-1.app.flowiseai.com/api/v1/prediction/7d7fcbbd-d20f-4f06-a2cc-daefb9accd8c"
-API_TARGET_STOCKS = "https://mincaai-1.app.flowiseai.com/api/v1/prediction/df48fb74-0478-451e-8d62-49501ec20823"
-API_REPORT_GENERATION = "https://mincaai-1.app.flowiseai.com/api/v1/prediction/131cac63-bc31-4ccb-9c9a-8304f78fe8ed"
+API_ATTACHMENT = "https://cloud.flowiseai.com/api/v1/attachments/7d7fcbbd-d20f-4f06-a2cc-daefb9accd8c/05c56991-0c04-477a-a521-b196a1ded0fa"
+API_STOCK_ANALYSIS_1 = "https://cloud.flowiseai.com/api/v1/prediction/a3b63d2d-3f5f-4e40-97f7-e2d0f9f4c8e9"
+API_STOCK_ANALYSIS_2 = "https://cloud.flowiseai.com/api/v1/prediction/5a92d92a-a6ea-4d88-bbe6-2c16f3d50e9f"
+API_PDF_ANALYSIS = "https://cloud.flowiseai.com/api/v1/prediction/7d7fcbbd-d20f-4f06-a2cc-daefb9accd8c"
+API_TARGET_STOCKS = "https://cloud.flowiseai.com/api/v1/prediction/df48fb74-0478-451e-8d62-49501ec20823"
+API_REPORT_GENERATION = "https://cloud.flowiseai.com/api/v1/prediction/131cac63-bc31-4ccb-9c9a-8304f78fe8ed"
 
 def interface():
     """Streamlit interface for generating financial reports."""
@@ -46,8 +46,8 @@ def interface():
             run_agent(col2,"Agent Actualité", "\n".join(prompt_lines[:2]), API_STOCK_ANALYSIS_2, "output2", "update2")
 
     if file_content:
-            combined_prompt = f"WebScrapper Result: {st.session_state.output2}"
-            run_agent(col3,"Agent Analyste", combined_prompt, API_PDF_ANALYSIS, "output3", "update3", uploads=file_content)
+            #combined_prompt = f"WebScrapper Result: {st.session_state.output2}"
+            run_agent(col3,"Agent Analyste", "\n".join(prompt_lines[:2], API_PDF_ANALYSIS, "output3", "update3", uploads=file_content)
 
     
     if any([st.session_state.output1, st.session_state.output2, st.session_state.output3]):
@@ -65,12 +65,18 @@ def interface():
                     stock_query = f"Stock Companies: {prompt_lines[0]}" if prompt_lines else ""
 
                     agent4_result = fetch_data(API_TARGET_STOCKS, {"question": stock_query, "uploads": file_content})
+                    
                     report_query = {
-                        "question": f"Stock prices options: {st.session_state.output1}\n"
-                                    f"Target stock prices: {agent4_result}\n"
-                                    f"Report analysis: {st.session_state.output3}"
+                        "question": (
+                            "Voici les résultats générés par nos différents agents spécialisés :\n\n"
+                            f"1. 📊 Performance des actions :\n{st.session_state.output1}\n\n"
+                            f"2. 📰 Actualité du secteur :\n{st.session_state.output2}\n\n"
+                            f"3. 📄 Résumé des documents PDF :\n{st.session_state.output3}\n\n"
+                            f"4. 🎯 Objectifs de prix pour les actions :\n{agent4_result}\n\n"
+                            "Merci de générer une note d’analyse structurée et professionnelle à partir de ces éléments, "
+                            "avec des sections claires, des recommandations et une synthèse finale."
+                        )
                     }
-
                     # Fetch generated report
                     st.session_state.generated_report = fetch_data(API_REPORT_GENERATION, report_query)
 

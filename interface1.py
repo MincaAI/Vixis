@@ -6,11 +6,11 @@ from runAgent import run_agent
 import json
 
 # API URLs
-API_ATTACHMENT = "https://mincaai-1.app.flowiseai.com/api/v1/attachments/fecc2cff-f971-401e-8eeb-de68484888d1/b49aa47d-d507-4b4c-a731-ebacbf08725e"
-API_STOCK_ANALYSIS_1 = "https://mincaai-1.app.flowiseai.com/api/v1/prediction/a3b63d2d-3f5f-4e40-97f7-e2d0f9f4c8e9"
-API_STOCK_ANALYSIS_2 = "https://mincaai-1.app.flowiseai.com/api/v1/prediction/5a92d92a-a6ea-4d88-bbe6-2c16f3d50e9f"
-API_PDF_ANALYSIS = "https://mincaai-1.app.flowiseai.com/api/v1/prediction/fecc2cff-f971-401e-8eeb-de68484888d1"
-API_REPORT_GENERATION = "https://mincaai-1.app.flowiseai.com/api/v1/prediction/f80e1f89-b069-4139-b93b-19042ec800a2"
+API_ATTACHMENT = "https://cloud.flowiseai.com/api/v1/attachments/fecc2cff-f971-401e-8eeb-de68484888d1/b3828dd6-59a3-4fe2-a9ac-884c9a4f8746"
+API_STOCK_ANALYSIS_1 = "https://cloud.flowiseai.com/api/v1/prediction/a3b63d2d-3f5f-4e40-97f7-e2d0f9f4c8e9"
+API_STOCK_ANALYSIS_2 = "https://cloud.flowiseai.com/api/v1/prediction/5a92d92a-a6ea-4d88-bbe6-2c16f3d50e9f"
+API_PDF_ANALYSIS = "https://cloud.flowiseai.com/api/v1/prediction/fecc2cff-f971-401e-8eeb-de68484888d1"
+API_REPORT_GENERATION = "https://cloud.flowiseai.com/api/v1/prediction/f80e1f89-b069-4139-b93b-19042ec800a2"
 
 def interface1():
     """Streamlit interface for generating financial reports."""
@@ -48,8 +48,7 @@ def interface1():
 
 
     if file_content:
-            combined_prompt = f"WebScrapper Result: {st.session_state.output5}"
-            run_agent(col3,"Agent Analyste", combined_prompt, API_PDF_ANALYSIS, "output6", "update3", uploads=file_content)
+            run_agent(col3,"Agent Analyste", "\n".join(prompt_lines[:2], API_PDF_ANALYSIS, "output6", "update3", uploads=file_content)
 
     
     # Ensure all outputs are available before generating the report
@@ -65,11 +64,20 @@ def interface1():
         with genReport_placeholder:
             with st.status("L’agent est prêt ...", expanded=True) as status:
                 if st.button("🔄 Générez la note d’analyse"):
+                    
                     report_query = {
-                        "question": f"Stock prices options: {st.session_state.output4}\n"
-                                    f"Report analysis: {st.session_state.output6}"
-                    }
-                    # Fetch generated report
+                        "question": (
+                            "Tu es un analyste financier senior chez VIXIS. Rédige une note d’analyse approfondie sur une seule entreprise, à destination d’investisseurs professionnels.\n\n"
+                            "Voici les informations à ta disposition :\n\n"
+                            f"📊 Données financières :\n{st.session_state.output4}\n\n"
+                            f"📰 Actualité récente :\n{st.session_state.output5}\n\n"
+                            f"📄 Synthèse externe (rapports PDF) :\n{st.session_state.output6}\n\n"
+                            "Rédige un rapport professionnel en analysant activement ces informations, sans les résumer passivement. Structure-le en paragraphes clairs :\n"
+                            
+                            "Mentionne la date du jour, évite toute redondance et produis un contenu fluide, structuré, professionnel."
+                        )
+                    }# Fetch generated report
+                    
                     st.session_state.generated_report_2 = fetch_data(API_REPORT_GENERATION, report_query)
 
                     # Generate a DOCX file
