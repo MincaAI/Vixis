@@ -48,7 +48,7 @@ def interface1():
 
 
     if file_content:
-            run_agent(col3,"Agent Analyste", "\n".join(prompt_lines[:2], API_PDF_ANALYSIS, "output6", "update3", uploads=file_content)
+            run_agent(col3,"Agent Analyste", "\n".join(prompt_lines[:2], API_PDF_ANALYSIS, "output6", "update3", uploads=file_content))
 
     
     # Ensure all outputs are available before generating the report

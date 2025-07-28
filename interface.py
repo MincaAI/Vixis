@@ -47,7 +47,7 @@ def interface():
 
     if file_content:
             #combined_prompt = f"WebScrapper Result: {st.session_state.output2}"
-            run_agent(col3,"Agent Analyste", "\n".join(prompt_lines[:2], API_PDF_ANALYSIS, "output3", "update3", uploads=file_content)
+            run_agent(col3,"Agent Analyste", "\n".join(prompt_lines[:2], API_PDF_ANALYSIS, "output3", "update3", uploads=file_content))
 
     
     if any([st.session_state.output1, st.session_state.output2, st.session_state.output3]):
