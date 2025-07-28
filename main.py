@@ -1,7 +1,6 @@
 import streamlit as st
 from streamlit_js_eval import streamlit_js_eval  # Handles cookies
 from datetime import datetime
-from models.Report import Report
 from navbar import navbar
 from interface import interface
 from interface1 import interface1

@@ -2,7 +2,6 @@ import streamlit as st
 from streamlit_option_menu import option_menu
 from datetime import datetime
 import pytz
-from models.Report import Report
 from sharepoint import SharePointClient
 
 def navbar():
