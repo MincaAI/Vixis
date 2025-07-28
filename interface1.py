@@ -9,8 +9,8 @@ import json
 API_ATTACHMENT = "https://cloud.flowiseai.com/api/v1/attachments/fecc2cff-f971-401e-8eeb-de68484888d1/b3828dd6-59a3-4fe2-a9ac-884c9a4f8746"
 API_STOCK_ANALYSIS_1 = "https://cloud.flowiseai.com/api/v1/prediction/a3b63d2d-3f5f-4e40-97f7-e2d0f9f4c8e9"
 API_STOCK_ANALYSIS_2 = "https://cloud.flowiseai.com/api/v1/prediction/5a92d92a-a6ea-4d88-bbe6-2c16f3d50e9f"
-API_PDF_ANALYSIS = "https://cloud.flowiseai.com/api/v1/prediction/fecc2cff-f971-401e-8eeb-de68484888d1"
-API_REPORT_GENERATION = "https://cloud.flowiseai.com/api/v1/prediction/52416925-02e2-4139-9fc0-457dd97e79ee"
+API_PDF_ANALYSIS = "https://cloud.flowiseai.com/api/v1/prediction/52416925-02e2-4139-9fc0-457dd97e79ee"
+API_REPORT_GENERATION = "https://cloud.flowiseai.com/api/v1/prediction/f80e1f89-b069-4139-b93b-19042ec800a2"
 
 def interface1():
     """Streamlit interface for generating financial reports."""
