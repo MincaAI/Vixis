@@ -2,3 +2,4 @@ beautifulsoup4
 fastapi 
 uvicorn
 requests
+urllib3<2
