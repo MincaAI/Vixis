@@ -44,7 +44,7 @@ class SharePointClient:
             'grant_type': 'client_credentials',
             'client_id': self.client_id,
             'client_secret': self.client_secret,
-            'scope': f'{self.resource_url}.default'
+            'scope': 'https://graph.microsoft.com/.default'
         }
         
         st.write(f"🔍 Debug - Scope: {body['scope']}")
