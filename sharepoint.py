@@ -55,8 +55,8 @@ class SharePointClient:
         
         if response.status_code != 200:
             st.error(f"❌ Erreur {response.status_code}: {response.text}")
+            return None  # Ne pas faire planter l'app
             
-        response.raise_for_status()
         return response.json().get('access_token')
 
     def get_site_id(self, site_url):
