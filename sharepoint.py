@@ -24,7 +24,7 @@ class SharePointClient:
         # Debug info AVANT la requête
         st.write(f"🔍 Debug - Tenant ID: {self.tenant_id}")
         st.write(f"🔍 Debug - Client ID: {self.client_id}")
-        st.write(f"🔍 Debug - Client Secret: {self.client_secret[:10]}...")
+        st.write(f"🔍 Debug - Client Secret: {self.client_secret[:10] if self.client_secret else 'None'}...")
         st.write(f"🔍 Debug - Resource: {self.resource_url}")
         st.write(f"🔍 Debug - URL: {self.base_url}")
         
