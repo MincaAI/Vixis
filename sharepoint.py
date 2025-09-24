@@ -27,7 +27,18 @@ class SharePointClient:
             'client_secret': self.client_secret,
             'scope': f'{self.resource_url}.default'
         }
+        
+        # Debug info
+        st.write(f"🔍 Debug - Tenant ID: {self.tenant_id}")
+        st.write(f"🔍 Debug - Client ID: {self.client_id}")
+        st.write(f"🔍 Debug - Resource: {self.resource_url}")
+        st.write(f"🔍 Debug - URL: {self.base_url}")
+        
         response = requests.post(self.base_url, headers=self.headers, data=body)
+        
+        if response.status_code != 200:
+            st.error(f"❌ Erreur {response.status_code}: {response.text}")
+            
         response.raise_for_status()
         return response.json().get('access_token')
 
@@ -88,15 +99,15 @@ class SharePointClient:
 
         json_data = df.to_dict(orient="records")
         json_output = json.dumps(json_data, indent=4)
-        mongo_client = MongoDBClient(mongo_url=os.getenv('MONGO_URL'), db_name=os.getenv('DB_NAME'))
+        mongo_client = MongoDBClient(mongo_url=st.secrets.get('MONGO_URL', os.getenv('MONGO_URL')), db_name=st.secrets.get('DB_NAME', os.getenv('DB_NAME')))
         mongo_client.update_collection('stock', json_data)
 
 
     def load_data(self):
-        site_url = os.getenv("SITE_URL")
+        site_url = st.secrets.get("SITE_URL", os.getenv("SITE_URL"))
         site_id = self.get_site_id(site_url)
 
-        drive_id = os.getenv("DRIVE_ID")
-        folder_id = os.getenv("FOLDER_ID")
+        drive_id = st.secrets.get("DRIVE_ID", os.getenv("DRIVE_ID"))
+        folder_id = st.secrets.get("FOLDER_ID", os.getenv("FOLDER_ID"))
         self.download_folder_contents(site_id, drive_id, folder_id)
 
