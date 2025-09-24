@@ -12,10 +12,10 @@ load_dotenv()
 
 class SharePointClient:
     def __init__(self):
-        self.tenant_id = st.secrets.get("TENANT_ID", os.getenv("TENANT_ID"))
-        self.client_id = st.secrets.get("CLIENT_ID", os.getenv("CLIENT_ID"))
-        self.client_secret = st.secrets.get("CLIENT_SECRET", os.getenv("CLIENT_SECRET"))
-        self.resource_url = st.secrets.get("RESOURCE", os.getenv("RESOURCE"))
+        self.tenant_id = st.secrets["auth"].get("TENANT_ID", os.getenv("TENANT_ID"))
+        self.client_id = st.secrets["auth"].get("CLIENT_ID", os.getenv("CLIENT_ID"))
+        self.client_secret = st.secrets["auth"].get("CLIENT_SECRET", os.getenv("CLIENT_SECRET"))
+        self.resource_url = st.secrets["auth"].get("RESOURCE", os.getenv("RESOURCE"))
         self.base_url = f"https://login.microsoftonline.com/{self.tenant_id}/oauth2/v2.0/token"
         self.headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         self.access_token = self.get_access_token()
@@ -116,15 +116,15 @@ class SharePointClient:
 
         json_data = df.to_dict(orient="records")
         json_output = json.dumps(json_data, indent=4)
-        mongo_client = MongoDBClient(mongo_url=st.secrets.get('MONGO_URL', os.getenv('MONGO_URL')), db_name=st.secrets.get('DB_NAME', os.getenv('DB_NAME')))
+        mongo_client = MongoDBClient(mongo_url=st.secrets["auth"].get('MONGO_URL', os.getenv('MONGO_URL')), db_name=st.secrets["auth"].get('DB_NAME', os.getenv('DB_NAME')))
         mongo_client.update_collection('stock', json_data)
 
 
     def load_data(self):
-        site_url = st.secrets.get("SITE_URL", os.getenv("SITE_URL"))
+        site_url = st.secrets["auth"].get("SITE_URL", os.getenv("SITE_URL"))
         site_id = self.get_site_id(site_url)
 
-        drive_id = st.secrets.get("DRIVE_ID", os.getenv("DRIVE_ID"))
-        folder_id = st.secrets.get("FOLDER_ID", os.getenv("FOLDER_ID"))
+        drive_id = st.secrets["auth"].get("DRIVE_ID", os.getenv("DRIVE_ID"))
+        folder_id = st.secrets["auth"].get("FOLDER_ID", os.getenv("FOLDER_ID"))
         self.download_folder_contents(site_id, drive_id, folder_id)
 
