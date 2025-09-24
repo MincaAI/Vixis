@@ -3,7 +3,6 @@ import os
 import pandas as pd
 from io import BytesIO
 import json
-from dotenv import load_dotenv
 from mongodb import MongoDBClient
 import streamlit as st
 
@@ -21,6 +20,18 @@ class SharePointClient:
         self.access_token = self.get_access_token()
 
     def get_access_token(self):
+        # Debug COMPLET pour voir ce qu'il y a dans st.secrets
+        st.write("🔍 Debug - st.secrets contenu:")
+        try:
+            st.write(dict(st.secrets))
+        except Exception as e:
+            st.write(f"❌ Erreur lecture st.secrets: {e}")
+        
+        st.write("🔍 Debug - Variables d'environnement:")
+        st.write(f"TENANT_ID env: {os.getenv('TENANT_ID')}")
+        st.write(f"CLIENT_ID env: {os.getenv('CLIENT_ID')}")
+        st.write(f"CLIENT_SECRET env: {os.getenv('CLIENT_SECRET')}")
+        
         # Debug info AVANT la requête
         st.write(f"🔍 Debug - Tenant ID: {self.tenant_id}")
         st.write(f"🔍 Debug - Client ID: {self.client_id}")
