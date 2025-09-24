@@ -2,5 +2,6 @@
 venv/
 .env
 
-# Ignore Streamlit cache
+# Ignore Streamlit cache and secrets
 .streamlit/config.toml
+.streamlit/secrets.toml

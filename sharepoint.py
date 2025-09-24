@@ -12,10 +12,10 @@ load_dotenv()
 
 class SharePointClient:
     def __init__(self):
-        self.tenant_id = os.getenv("TENANT_ID")
-        self.client_id = os.getenv("CLIENT_ID")
-        self.client_secret = os.getenv("CLIENT_SECRET")
-        self.resource_url = os.getenv("RESOURCE")
+        self.tenant_id = st.secrets.get("TENANT_ID", os.getenv("TENANT_ID"))
+        self.client_id = st.secrets.get("CLIENT_ID", os.getenv("CLIENT_ID"))
+        self.client_secret = st.secrets.get("CLIENT_SECRET", os.getenv("CLIENT_SECRET"))
+        self.resource_url = st.secrets.get("RESOURCE", os.getenv("RESOURCE"))
         self.base_url = f"https://login.microsoftonline.com/{self.tenant_id}/oauth2/v2.0/token"
         self.headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         self.access_token = self.get_access_token()
