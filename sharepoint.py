@@ -21,25 +21,6 @@ class SharePointClient:
         self.access_token = self.get_access_token()
 
     def get_access_token(self):
-        # Debug COMPLET pour voir ce qu'il y a dans st.secrets
-        st.write("🔍 Debug - st.secrets contenu:")
-        try:
-            st.write(dict(st.secrets))
-        except Exception as e:
-            st.write(f"❌ Erreur lecture st.secrets: {e}")
-        
-        st.write("🔍 Debug - Variables d'environnement:")
-        st.write(f"TENANT_ID env: {os.getenv('TENANT_ID')}")
-        st.write(f"CLIENT_ID env: {os.getenv('CLIENT_ID')}")
-        st.write(f"CLIENT_SECRET env: {os.getenv('CLIENT_SECRET')}")
-        
-        # Debug info AVANT la requête
-        st.write(f"🔍 Debug - Tenant ID: {self.tenant_id}")
-        st.write(f"🔍 Debug - Client ID: {self.client_id}")
-        st.write(f"🔍 Debug - Client Secret: {self.client_secret[:10] if self.client_secret else 'None'}...")
-        st.write(f"🔍 Debug - Resource: {self.resource_url}")
-        st.write(f"🔍 Debug - URL: {self.base_url}")
-        
         body = {
             'grant_type': 'client_credentials',
             'client_id': self.client_id,
@@ -47,16 +28,8 @@ class SharePointClient:
             'scope': 'https://graph.microsoft.com/.default'
         }
         
-        st.write(f"🔍 Debug - Scope: {body['scope']}")
-        
         response = requests.post(self.base_url, headers=self.headers, data=body)
-        
-        st.write(f"🔍 Debug - Response Status: {response.status_code}")
-        
-        if response.status_code != 200:
-            st.error(f"❌ Erreur {response.status_code}: {response.text}")
-            return None  # Ne pas faire planter l'app
-            
+        response.raise_for_status()
         return response.json().get('access_token')
 
     def get_site_id(self, site_url):
