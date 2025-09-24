@@ -3,6 +3,7 @@ import os
 import pandas as pd
 from io import BytesIO
 import json
+from dotenv import load_dotenv
 from mongodb import MongoDBClient
 import streamlit as st
 
