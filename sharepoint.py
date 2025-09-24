@@ -21,6 +21,13 @@ class SharePointClient:
         self.access_token = self.get_access_token()
 
     def get_access_token(self):
+        # Debug info AVANT la requête
+        st.write(f"🔍 Debug - Tenant ID: {self.tenant_id}")
+        st.write(f"🔍 Debug - Client ID: {self.client_id}")
+        st.write(f"🔍 Debug - Client Secret: {self.client_secret[:10]}...")
+        st.write(f"🔍 Debug - Resource: {self.resource_url}")
+        st.write(f"🔍 Debug - URL: {self.base_url}")
+        
         body = {
             'grant_type': 'client_credentials',
             'client_id': self.client_id,
@@ -28,13 +35,11 @@ class SharePointClient:
             'scope': f'{self.resource_url}.default'
         }
         
-        # Debug info
-        st.write(f"🔍 Debug - Tenant ID: {self.tenant_id}")
-        st.write(f"🔍 Debug - Client ID: {self.client_id}")
-        st.write(f"🔍 Debug - Resource: {self.resource_url}")
-        st.write(f"🔍 Debug - URL: {self.base_url}")
+        st.write(f"🔍 Debug - Scope: {body['scope']}")
         
         response = requests.post(self.base_url, headers=self.headers, data=body)
+        
+        st.write(f"🔍 Debug - Response Status: {response.status_code}")
         
         if response.status_code != 200:
             st.error(f"❌ Erreur {response.status_code}: {response.text}")
