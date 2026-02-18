@@ -10,12 +10,26 @@ import streamlit as st
 # Load environment variables from .env file
 load_dotenv()
 
+def _get_sharepoint_secrets():
+    """Secrets from Streamlit Cloud dashboard or .env. Avoids KeyError if [sharepoint] not set."""
+    try:
+        return dict(st.secrets.get("sharepoint", {}))
+    except Exception:
+        return {}
+
+
 class SharePointClient:
     def __init__(self):
-        self.tenant_id = st.secrets["sharepoint"].get("TENANT_ID", os.getenv("TENANT_ID"))
-        self.client_id = st.secrets["sharepoint"].get("CLIENT_ID", os.getenv("CLIENT_ID"))
-        self.client_secret = st.secrets["sharepoint"].get("CLIENT_SECRET", os.getenv("CLIENT_SECRET"))
-        self.resource_url = st.secrets["sharepoint"].get("RESOURCE", os.getenv("RESOURCE"))
+        secrets = _get_sharepoint_secrets()
+        self.tenant_id = secrets.get("TENANT_ID", os.getenv("TENANT_ID"))
+        self.client_id = secrets.get("CLIENT_ID", os.getenv("CLIENT_ID"))
+        self.client_secret = secrets.get("CLIENT_SECRET", os.getenv("CLIENT_SECRET"))
+        self.resource_url = secrets.get("RESOURCE", os.getenv("RESOURCE"))
+        self._secrets = secrets
+        if not self.tenant_id or not self.client_id or not self.client_secret:
+            raise ValueError(
+                "SharePoint/MongoDB non configurés. Sur Streamlit Cloud : réglages → Secrets → ajouter la section [sharepoint] avec TENANT_ID, CLIENT_ID, CLIENT_SECRET, SITE_URL, DRIVE_ID, FOLDER_ID, MONGO_URL, DB_NAME."
+            )
         self.base_url = f"https://login.microsoftonline.com/{self.tenant_id}/oauth2/v2.0/token"
         self.headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         self.access_token = self.get_access_token()
@@ -89,15 +103,15 @@ class SharePointClient:
 
         json_data = df.to_dict(orient="records")
         json_output = json.dumps(json_data, indent=4)
-        mongo_client = MongoDBClient(mongo_url=st.secrets["sharepoint"].get('MONGO_URL', os.getenv('MONGO_URL')), db_name=st.secrets["sharepoint"].get('DB_NAME', os.getenv('DB_NAME')))
+        mongo_client = MongoDBClient(mongo_url=self._secrets.get('MONGO_URL', os.getenv('MONGO_URL')), db_name=self._secrets.get('DB_NAME', os.getenv('DB_NAME')))
         mongo_client.update_collection('stock', json_data)
 
 
     def load_data(self):
-        site_url = st.secrets["sharepoint"].get("SITE_URL", os.getenv("SITE_URL"))
+        site_url = self._secrets.get("SITE_URL", os.getenv("SITE_URL"))
         site_id = self.get_site_id(site_url)
 
-        drive_id = st.secrets["sharepoint"].get("DRIVE_ID", os.getenv("DRIVE_ID"))
-        folder_id = st.secrets["sharepoint"].get("FOLDER_ID", os.getenv("FOLDER_ID"))
+        drive_id = self._secrets.get("DRIVE_ID", os.getenv("DRIVE_ID"))
+        folder_id = self._secrets.get("FOLDER_ID", os.getenv("FOLDER_ID"))
         self.download_folder_contents(site_id, drive_id, folder_id)
 

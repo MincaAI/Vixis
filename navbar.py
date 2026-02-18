@@ -134,8 +134,13 @@ def navbar():
         with col2:
             if st.button("Update Data", key="update_data", help="Click to refresh data"):
                 with st.spinner("Updating data... ⏳"):
-                    sp = SharePointClient()
-                    sp.load_data()
+                    try:
+                        sp = SharePointClient()
+                        sp.load_data()
+                    except ValueError as e:
+                        st.error(str(e))
+                    except Exception as e:
+                        st.error(f"Erreur lors de la mise à jour : {e}")
         
         # Add divider
         st.markdown("<hr style='border: 0.5px solid #ccc;'>", unsafe_allow_html=True)
