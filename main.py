@@ -1,4 +1,8 @@
 import streamlit as st
+
+# Must be the first Streamlit command (before any other st.* calls)
+st.set_page_config(page_title="Financial Report Generator", layout="wide")
+
 from streamlit_js_eval import streamlit_js_eval  # Handles cookies
 from datetime import datetime
 from navbar import navbar
@@ -7,9 +11,6 @@ from interface1 import interface1
 
 
 if __name__ == "__main__":
-
-    st.set_page_config(page_title="Financial Report Generator", layout="wide")
-
     if not st.user.is_logged_in:
         st.header("Please log in to continue.")
         st.button("Log in with Microsoft", on_click=st.login)
