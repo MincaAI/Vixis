@@ -11,10 +11,11 @@ from interface1 import interface1
 
 
 if __name__ == "__main__":
-    if not st.user.is_logged_in:
-        st.header("Please log in to continue.")
-        st.button("Log in with Microsoft", on_click=st.login)
-        st.stop()
+    # --- AUTH TEMPORARILY DISABLED FOR DEBUGGING ---
+    # if not st.user.is_logged_in:
+    #     st.header("Please log in to continue.")
+    #     st.button("Log in with Microsoft", on_click=st.login)
+    #     st.stop()
 
     if "selected_page" not in st.session_state:
         st.session_state.selected_page = "Note d’analyse sectorielle"
