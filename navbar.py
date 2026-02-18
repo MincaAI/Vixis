@@ -150,8 +150,8 @@ def navbar():
         current_paris_time = datetime.now(paris_tz).strftime("%d/%m/%Y")
         st.markdown(f'<p style="font-size: 14px; color: #333; margin-top: 4px; margin-bottom: 2px; font-family: Arial, sans-serif;">Date: {current_paris_time}</p>', unsafe_allow_html=True)
         
-        # Add email
-        user_email = "Email: "+ st.user.email
+        # Add user info
+        user_email = "User: " + st.user.name
         st.markdown(f'<p style="font-size: 14px; color: #333; margin-top: 2px; font-family: Arial, sans-serif;">{user_email}</p>', unsafe_allow_html=True)
         
         # Add more vertical space before logout button
