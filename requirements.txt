@@ -1,4 +1,4 @@
-altair==4
+altair
 attrs
 blinker
 cachetools
@@ -32,7 +32,7 @@ rich
 rpds-py
 six
 smmap
-streamlit>=1.24.1
+streamlit>=1.42.0
 streamlit-js-eval
 tenacity
 toml
