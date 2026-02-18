@@ -8,11 +8,12 @@ from interface1 import interface1
 
 if __name__ == "__main__":
 
+    st.set_page_config(page_title="Financial Report Generator", layout="wide")
+
     if not st.user.is_logged_in:
         if st.button("Log in with SharePoint"):
             st.login()
         st.stop()
-    st.set_page_config(page_title="Financial Report Generator", layout="wide")
 
     if "selected_page" not in st.session_state:
         st.session_state.selected_page = "Note d’analyse sectorielle"
