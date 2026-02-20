@@ -1,7 +1,5 @@
 [server]
 maxUploadSize = 50
-enableCORS = false
-enableXsrfProtection = false
 runOnSave = true
 
 [theme]
