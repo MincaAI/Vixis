@@ -49,6 +49,27 @@ except Exception as e:
     print(f"[VIXIS DEBUG] Auth state error: {e}", flush=True)
     st.error(f"Error checking auth: {e}")
 
+# TEST DIRECTO: verificar si el client_secret funciona con Microsoft
+import requests as _requests
+try:
+    _tenant = auth_conf.get('server_metadata_url', '').split('/')[3] if 'server_metadata_url' in auth_conf else ''
+    _token_url = f"https://login.microsoftonline.com/{_tenant}/oauth2/v2.0/token"
+    _test_resp = _requests.post(_token_url, data={
+        'grant_type': 'client_credentials',
+        'client_id': auth_conf.get('client_id', ''),
+        'client_secret': auth_conf.get('client_secret', ''),
+        'scope': 'https://graph.microsoft.com/.default'
+    }, timeout=10)
+    print(f"[VIXIS DEBUG] SECRET TEST: status={_test_resp.status_code}", flush=True)
+    if _test_resp.status_code == 200:
+        print("[VIXIS DEBUG] SECRET TEST: CLIENT_SECRET IS VALID ✓", flush=True)
+    else:
+        _err = _test_resp.json()
+        print(f"[VIXIS DEBUG] SECRET TEST: FAILED - {_err.get('error', 'unknown')}", flush=True)
+        print(f"[VIXIS DEBUG] SECRET TEST: {_err.get('error_description', 'no desc')[:200]}", flush=True)
+except Exception as e:
+    print(f"[VIXIS DEBUG] SECRET TEST error: {e}", flush=True)
+
 # JavaScript debug en consola del navegador
 components.html("""
 <script>
