@@ -10,26 +10,96 @@ import streamlit as st
 # Load environment variables from .env file
 load_dotenv()
 
+_SHAREPOINT_KEYS = (
+    "TENANT_ID",
+    "CLIENT_ID",
+    "CLIENT_SECRET",
+    "RESOURCE",
+    "SITE_URL",
+    "DRIVE_ID",
+    "FOLDER_ID",
+    "MONGO_URL",
+    "DB_NAME",
+)
+
+
+def _nonempty(val):
+    if val is None:
+        return False
+    if isinstance(val, str):
+        return bool(val.strip())
+    return True
+
+
 def _get_sharepoint_secrets():
-    """Secrets from Streamlit Cloud dashboard or .env. Avoids KeyError if [sharepoint] not set."""
+    """Merge [sharepoint] / [mongodb] from st.secrets with Azure App Service / .env vars.
+
+    If TOML contains empty strings, dict.get(key, os.getenv) would NOT fall back to env;
+    we fill missing/empty keys from os.environ (and RESSOURCE typo for RESOURCE).
+    """
+    out = {}
     try:
-        section = st.secrets["sharepoint"]
-        return {key: section[key] for key in section}
-    except (KeyError, FileNotFoundError):
-        return {}
+        sp = st.secrets.get("sharepoint", {})
+        if isinstance(sp, dict):
+            out.update(sp)
+    except Exception:
+        pass
+    for sec_name in ("mongodb", "mongo"):
+        try:
+            block = st.secrets.get(sec_name, {})
+            if isinstance(block, dict):
+                for k in ("MONGO_URL", "DB_NAME"):
+                    if k in block:
+                        out[k] = block[k]
+        except Exception:
+            pass
+    for k in _SHAREPOINT_KEYS:
+        if not _nonempty(out.get(k)):
+            v = os.getenv(k)
+            if k == "RESOURCE" and not _nonempty(v):
+                v = os.getenv("RESSOURCE")
+            if _nonempty(v):
+                out[k] = v.strip() if isinstance(v, str) else v
+    # region agent log
+    import sys as _sys, time as _time
+    _sp_diag = {
+        "has_tenant": _nonempty(out.get("TENANT_ID")),
+        "has_client": _nonempty(out.get("CLIENT_ID")),
+        "has_secret": _nonempty(out.get("CLIENT_SECRET")),
+        "has_resource": _nonempty(out.get("RESOURCE")),
+        "has_site": _nonempty(out.get("SITE_URL")),
+        "has_drive": _nonempty(out.get("DRIVE_ID")),
+        "has_folder": _nonempty(out.get("FOLDER_ID")),
+        "has_mongo": _nonempty(out.get("MONGO_URL")),
+        "has_db": _nonempty(out.get("DB_NAME")),
+        "client_id_suffix": (out.get("CLIENT_ID") or "")[-6:] if _nonempty(out.get("CLIENT_ID")) else None,
+        "tenant_id_suffix": (out.get("TENANT_ID") or "")[-6:] if _nonempty(out.get("TENANT_ID")) else None,
+    }
+    print(f"DIAG sharepoint.py: config = {json.dumps(_sp_diag)}", file=_sys.stderr, flush=True)
+    try:
+        _lp = os.path.join(os.path.dirname(__file__) or ".", ".cursor", "debug-2882f5.log")
+        os.makedirs(os.path.dirname(_lp), exist_ok=True)
+        with open(_lp, "a") as _f:
+            _f.write(json.dumps({"sessionId": "2882f5", "hypothesisId": "H-sp-config", "location": "sharepoint.py:_get_sharepoint_secrets", "message": "merged config", "data": _sp_diag, "timestamp": int(_time.time() * 1000)}) + "\n")
+    except Exception:
+        pass
+    # endregion
+    return out
 
 
 class SharePointClient:
     def __init__(self):
         secrets = _get_sharepoint_secrets()
-        self.tenant_id = secrets.get("TENANT_ID", os.getenv("TENANT_ID"))
-        self.client_id = secrets.get("CLIENT_ID", os.getenv("CLIENT_ID"))
-        self.client_secret = secrets.get("CLIENT_SECRET", os.getenv("CLIENT_SECRET"))
-        self.resource_url = secrets.get("RESOURCE", os.getenv("RESOURCE"))
+        self.tenant_id = secrets.get("TENANT_ID")
+        self.client_id = secrets.get("CLIENT_ID")
+        self.client_secret = secrets.get("CLIENT_SECRET")
+        self.resource_url = secrets.get("RESOURCE")
         self._secrets = secrets
         if not self.tenant_id or not self.client_id or not self.client_secret:
             raise ValueError(
-                "SharePoint/MongoDB non configurés. Sur Streamlit Cloud : réglages → Secrets → ajouter la section [sharepoint] avec TENANT_ID, CLIENT_ID, CLIENT_SECRET, SITE_URL, DRIVE_ID, FOLDER_ID, MONGO_URL, DB_NAME."
+                "SharePoint/MongoDB non configurés. "
+                "Azure : définir TENANT_ID, CLIENT_ID, CLIENT_SECRET dans la section [sharepoint] "
+                "de secrets.toml (via STREAMLIT_SECRETS), plus SITE_URL, DRIVE_ID, FOLDER_ID, MONGO_URL, DB_NAME."
             )
         self.base_url = f"https://login.microsoftonline.com/{self.tenant_id}/oauth2/v2.0/token"
         self.headers = {'Content-Type': 'application/x-www-form-urlencoded'}
@@ -44,7 +114,13 @@ class SharePointClient:
         }
         
         response = requests.post(self.base_url, headers=self.headers, data=body)
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except requests.HTTPError as e:
+            detail = response.text[:1200] if response.text else str(e)
+            raise RuntimeError(
+                f"Échec token Microsoft Graph (client credentials), HTTP {response.status_code}. Détail: {detail}"
+            ) from e
         return response.json().get('access_token')
 
     def get_site_id(self, site_url):
@@ -79,40 +155,39 @@ class SharePointClient:
                     self.download_file(file_url, item['name'])
 
     def round_numeric_values(x):
-        numeric_value = pd.to_numeric(x, errors='coerce')  # Convert to number if possible
-        if pd.notna(numeric_value):  # Check if it's a valid number
-            return round(numeric_value, 2)  # Round if it's a number
+        numeric_value = pd.to_numeric(x, errors='coerce')
+        if pd.notna(numeric_value):
+            return round(numeric_value, 2)
         return x 
     
     def transform(self, df):
-        df.columns = df.iloc[0]  # Assign first row as column names
-        df = df[1:].reset_index(drop=True)  # Remove first row from data
+        df.columns = df.iloc[0]
+        df = df[1:].reset_index(drop=True)
         if df['CUR_MKT_CAP'].isna().all():
             st.error("All values in CUR_MKT_CAP are null. Please check the file.")
             return
-        # Find the index of the "SCORING" column
         if "SCORING" in df.columns:
-            scoring_index = df.columns.get_loc("SCORING") + 1  # Keep up to "SCORING" (inclusive)
-            df = df.iloc[:, :scoring_index]  # Keep only required columns
+            scoring_index = df.columns.get_loc("SCORING") + 1
+            df = df.iloc[:, :scoring_index]
 
-        # Convert numeric values to float and round them
         df = df.map(lambda x: round(float(x), 2) if str(x).replace('.', '', 1).isdigit() else x)
 
         df.columns = df.columns.str.strip()
-        # Strip and normalize spaces in all string cells
         df = df.map(lambda x: ' '.join(x.split()) if isinstance(x, str) else x)
 
         json_data = df.to_dict(orient="records")
         json_output = json.dumps(json_data, indent=4)
-        mongo_client = MongoDBClient(mongo_url=self._secrets.get('MONGO_URL', os.getenv('MONGO_URL')), db_name=self._secrets.get('DB_NAME', os.getenv('DB_NAME')))
+        mongo_client = MongoDBClient(
+            mongo_url=(self._secrets.get("MONGO_URL") or os.getenv("MONGO_URL")),
+            db_name=(self._secrets.get("DB_NAME") or os.getenv("DB_NAME")),
+        )
         mongo_client.update_collection('stock', json_data)
 
 
     def load_data(self):
-        site_url = self._secrets.get("SITE_URL", os.getenv("SITE_URL"))
+        site_url = self._secrets.get("SITE_URL") or os.getenv("SITE_URL")
         site_id = self.get_site_id(site_url)
 
-        drive_id = self._secrets.get("DRIVE_ID", os.getenv("DRIVE_ID"))
-        folder_id = self._secrets.get("FOLDER_ID", os.getenv("FOLDER_ID"))
+        drive_id = self._secrets.get("DRIVE_ID") or os.getenv("DRIVE_ID")
+        folder_id = self._secrets.get("FOLDER_ID") or os.getenv("FOLDER_ID")
         self.download_folder_contents(site_id, drive_id, folder_id)
-
