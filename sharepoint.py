@@ -13,8 +13,9 @@ load_dotenv()
 def _get_sharepoint_secrets():
     """Secrets from Streamlit Cloud dashboard or .env. Avoids KeyError if [sharepoint] not set."""
     try:
-        return dict(st.secrets.get("sharepoint", {}))
-    except Exception:
+        section = st.secrets["sharepoint"]
+        return {key: section[key] for key in section}
+    except (KeyError, FileNotFoundError):
         return {}
 
 
