@@ -118,26 +118,7 @@ def main() -> int:
             k = line.split("=", 1)[0].strip()
             keys_preview.append(k)
 
-    # region agent log
     sections = list(parsed.keys()) if isinstance(parsed, dict) else []
-    auth_redir = parsed.get("auth", {}).get("redirect_uri", "MISSING") if isinstance(parsed, dict) else "N/A"
-    diag = {
-        "source": source,
-        "bytes": out_path.stat().st_size,
-        "sections": sections,
-        "keys": keys_preview[:12],
-        "auth_redirect_uri": auth_redir,
-        "has_sharepoint": "sharepoint" in sections,
-        "has_mongo": any(s in sections for s in ("mongo", "mongodb")),
-    }
-    try:
-        _lp = os.path.join(os.path.dirname(__file__) or ".", ".cursor", "debug-2882f5.log")
-        os.makedirs(os.path.dirname(_lp), exist_ok=True)
-        with open(_lp, "a") as _f:
-            _f.write(json.dumps({"sessionId": "2882f5", "hypothesisId": "H-startup-write", "location": "azure_write_secrets.py:main", "message": "secrets.toml written", "data": diag, "timestamp": int(__import__("time").time() * 1000)}) + "\n")
-    except Exception:
-        pass
-    # endregion
 
     print(
         f"azure_write_secrets: wrote {out_path} from {source}, bytes={out_path.stat().st_size}, "
