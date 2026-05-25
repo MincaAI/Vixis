@@ -77,6 +77,19 @@ def build_from_env() -> str | None:
     return "\n".join(lines).strip() or None
 
 
+def _fix_single_line_toml(raw: str) -> str:
+    """Azure portal strips newlines from env var values.
+    Reconstruct valid TOML by inserting newlines before section headers
+    and between key = value pairs."""
+    import re
+    # Add newline before every [section] that isn't at the start
+    fixed = re.sub(r'\s*(\[[a-zA-Z_][a-zA-Z0-9_]*\])', r'\n\n\1\n', raw).strip()
+    # Split remaining on unquoted key=value boundaries:
+    # Look for `" key_name =` pattern (end of a quoted value followed by a new key)
+    fixed = re.sub(r'"\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*"', r'"\n\1 = "', fixed)
+    return fixed
+
+
 def main() -> int:
     root = Path(os.environ.get("WEBSITE_SITE_PATH", "/home/site/wwwroot"))
     if not root.is_dir():
@@ -88,6 +101,15 @@ def main() -> int:
     if raw:
         text = raw
         source = "STREAMLIT_SECRETS"
+        # Try parsing as-is; if it fails, Azure likely stripped newlines
+        try:
+            import tomllib
+            tomllib.loads(text)
+        except Exception:
+            print("azure_write_secrets: TOML parse failed, attempting newline fix...",
+                  file=sys.stderr, flush=True)
+            text = _fix_single_line_toml(text)
+            source = "STREAMLIT_SECRETS (fixed)"
     else:
         built = build_from_env()
         if not built:
