@@ -1,6 +1,7 @@
 [server]
 maxUploadSize = 50
 runOnSave = true
+useStarlette = false
 
 [theme]
 primaryColor="#FF4B4B"

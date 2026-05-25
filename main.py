@@ -1,3 +1,20 @@
+import os, sys
+
+if os.environ.get("WEBSITE_SITE_NAME"):
+    try:
+        from azure_write_secrets import main as _write_secrets
+        _rc = _write_secrets()
+        print(f"[BOOT] azure_write_secrets returned {_rc}", file=sys.stderr, flush=True)
+    except Exception as _e:
+        print(f"[BOOT] azure_write_secrets failed: {_e}", file=sys.stderr, flush=True)
+
+    secrets_path = os.path.join(os.getcwd(), ".streamlit", "secrets.toml")
+    if os.path.exists(secrets_path):
+        sz = os.path.getsize(secrets_path)
+        print(f"[BOOT] secrets.toml exists, size={sz}", file=sys.stderr, flush=True)
+    else:
+        print(f"[BOOT] WARNING: secrets.toml MISSING at {secrets_path}", file=sys.stderr, flush=True)
+
 import streamlit as st
 
 st.set_page_config(page_title="Financial Report Generator", layout="wide")
@@ -5,37 +22,6 @@ st.set_page_config(page_title="Financial Report Generator", layout="wide")
 from navbar import navbar
 from interface import interface
 from interface1 import interface1
-
-import sys as _sys, traceback as _tb
-
-try:
-    from streamlit.web.server.oauth_authlib_routes import AuthLoginHandler
-    _orig_get = AuthLoginHandler.get
-    async def _patched_get(self):
-        try:
-            return await _orig_get(self)
-        except Exception as _exc:
-            self.set_status(500)
-            self.write(f"Auth error (Tornado): {type(_exc).__name__}: {_exc}\n\n{_tb.format_exc()}")
-            self.finish()
-    AuthLoginHandler.get = _patched_get
-    print("[DIAG] Tornado auth patch applied", file=_sys.stderr)
-except Exception as _e:
-    print(f"[DIAG] Tornado patch skipped: {_e}", file=_sys.stderr)
-
-try:
-    import streamlit.web.server.starlette.starlette_auth_routes as _star_auth
-    _orig_login = _star_auth._auth_login
-    async def _patched_login(request, base_url):
-        try:
-            return await _orig_login(request, base_url)
-        except Exception as _exc:
-            from starlette.responses import PlainTextResponse
-            return PlainTextResponse(f"Auth error (Starlette): {type(_exc).__name__}: {_exc}\n\n{_tb.format_exc()}", status_code=500)
-    _star_auth._auth_login = _patched_login
-    print("[DIAG] Starlette auth patch applied", file=_sys.stderr)
-except Exception as _e:
-    print(f"[DIAG] Starlette patch skipped: {_e}", file=_sys.stderr)
 
 
 if __name__ == "__main__":
