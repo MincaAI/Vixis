@@ -31,59 +31,58 @@ def _nonempty(val):
     return True
 
 
-def _get_sharepoint_secrets():
-    """Merge [sharepoint] / [mongodb] from st.secrets with Azure App Service / .env vars.
+_ENV_ALIASES = {
+    "TENANT_ID": ("SHAREPOINT_TENANT_ID", "VIXIS_TENANT_ID", "TENANT_ID"),
+    "CLIENT_ID": ("SHAREPOINT_CLIENT_ID", "VIXIS_CLIENT_ID", "GRAPH_CLIENT_ID", "CLIENT_ID"),
+    "CLIENT_SECRET": ("SHAREPOINT_CLIENT_SECRET", "VIXIS_CLIENT_SECRET", "GRAPH_CLIENT_SECRET", "CLIENT_SECRET"),
+    "RESOURCE": ("RESOURCE", "RESSOURCE"),
+    "SITE_URL": ("SITE_URL",),
+    "DRIVE_ID": ("DRIVE_ID",),
+    "FOLDER_ID": ("FOLDER_ID",),
+    "MONGO_URL": ("MONGO_URL",),
+    "DB_NAME": ("DB_NAME",),
+}
 
-    If TOML contains empty strings, dict.get(key, os.getenv) would NOT fall back to env;
-    we fill missing/empty keys from os.environ (and RESSOURCE typo for RESOURCE).
-    """
+
+def _get_sharepoint_secrets():
+    """Merge [sharepoint] / [mongodb] from st.secrets with Azure App Service / .env vars."""
+    import sys as _sys
+
     out = {}
     try:
         sp = st.secrets.get("sharepoint", {})
-        if isinstance(sp, dict):
+        if hasattr(sp, "to_dict"):
+            out.update(sp.to_dict())
+        elif isinstance(sp, (dict,)):
             out.update(sp)
-    except Exception:
-        pass
+        else:
+            out.update(dict(sp))
+    except Exception as exc:
+        print(f"sharepoint.py: st.secrets['sharepoint'] failed: {exc}", file=_sys.stderr, flush=True)
+
     for sec_name in ("mongodb", "mongo"):
         try:
             block = st.secrets.get(sec_name, {})
-            if isinstance(block, dict):
-                for k in ("MONGO_URL", "DB_NAME"):
-                    if k in block:
-                        out[k] = block[k]
+            if hasattr(block, "to_dict"):
+                block = block.to_dict()
+            elif not isinstance(block, dict):
+                block = dict(block)
+            for k in ("MONGO_URL", "DB_NAME"):
+                if k in block:
+                    out[k] = block[k]
         except Exception:
             pass
+
     for k in _SHAREPOINT_KEYS:
         if not _nonempty(out.get(k)):
-            v = os.getenv(k)
-            if k == "RESOURCE" and not _nonempty(v):
-                v = os.getenv("RESSOURCE")
-            if _nonempty(v):
-                out[k] = v.strip() if isinstance(v, str) else v
-    # region agent log
-    import sys as _sys, time as _time
-    _sp_diag = {
-        "has_tenant": _nonempty(out.get("TENANT_ID")),
-        "has_client": _nonempty(out.get("CLIENT_ID")),
-        "has_secret": _nonempty(out.get("CLIENT_SECRET")),
-        "has_resource": _nonempty(out.get("RESOURCE")),
-        "has_site": _nonempty(out.get("SITE_URL")),
-        "has_drive": _nonempty(out.get("DRIVE_ID")),
-        "has_folder": _nonempty(out.get("FOLDER_ID")),
-        "has_mongo": _nonempty(out.get("MONGO_URL")),
-        "has_db": _nonempty(out.get("DB_NAME")),
-        "client_id_suffix": (out.get("CLIENT_ID") or "")[-6:] if _nonempty(out.get("CLIENT_ID")) else None,
-        "tenant_id_suffix": (out.get("TENANT_ID") or "")[-6:] if _nonempty(out.get("TENANT_ID")) else None,
-    }
+            for alias in _ENV_ALIASES.get(k, (k,)):
+                v = os.getenv(alias)
+                if _nonempty(v):
+                    out[k] = v.strip()
+                    break
+
+    _sp_diag = {key: _nonempty(out.get(key)) for key in _SHAREPOINT_KEYS}
     print(f"DIAG sharepoint.py: config = {json.dumps(_sp_diag)}", file=_sys.stderr, flush=True)
-    try:
-        _lp = os.path.join(os.path.dirname(__file__) or ".", ".cursor", "debug-2882f5.log")
-        os.makedirs(os.path.dirname(_lp), exist_ok=True)
-        with open(_lp, "a") as _f:
-            _f.write(json.dumps({"sessionId": "2882f5", "hypothesisId": "H-sp-config", "location": "sharepoint.py:_get_sharepoint_secrets", "message": "merged config", "data": _sp_diag, "timestamp": int(_time.time() * 1000)}) + "\n")
-    except Exception:
-        pass
-    # endregion
     return out
 
 
